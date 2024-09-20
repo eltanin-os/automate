@@ -1,0 +1,99 @@
+#!/bin/execlineb -S1
+# deps
+if {
+	backtick -D "" deps {
+		backtick -ED "cat" transform { venus-conf transform $1 }
+		pipeline { venus-conf -ltv - $1 }
+		execlineb -P -c $transform
+	}
+	if -t {
+		importas -i deps deps
+		test -n "${deps}"
+	}
+	importas -isu deps deps
+	redo-ifchange $deps
+}
+# module
+importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+if {
+	backtick -ED "" module { venus-conf module $1 }
+	if -t { test -n "${module}" }
+	${AUTOMATE_ETC_DIR}/modules/$module $1
+}
+# exec
+backtick -Ex tmpfile { mktemp }
+trap { default { rm $tmpfile } }
+if {
+	redirfd -w 1 $tmpfile
+	# BUILD ENV
+	# XXX: IT HAS POTENTIAL TO FORK A LOT, BUT USUALLY WILL BE ALRIGHT.
+	# IF PROVEN TO BE A BOTTLENECK REWRITE IN POSIX SH
+	foreground {
+		forbacktickx -E entry { venus-conf -tlk env $1 }
+		if -nt {
+			backtick -Ex single {
+				pipeline { venus-conf env $1 }
+				venus-conf $entry
+			}
+		}
+		backtick -Ex type {
+			pipeline { venus-conf env $1 }
+			pipeline { venus-conf -t $entry }
+			venus-conf type
+		}
+		if -nt { test "literal" = "$type" }
+		backtick -Ex data {
+			pipeline { venus-conf env $1 }
+			pipeline { venus-conf -t $entry }
+			venus-conf $type
+		}
+		echo "backtick $entry { $data }"
+	}
+	# IMPORT
+	if { echo "multisubstitute {" }
+	## SEARCH AND IMPORT ${VARIABLES} IN COMMAND LINE
+	foreground {
+		forbacktickx -E entry {
+			pipeline { venus-conf -a command $1 }
+			awk -f ${AUTOMATE_ETC_DIR}/bin/variables.awk
+		}
+		echo "importas -sD \"\" ${entry} ${entry}"
+	}
+	## SEARCH ENV
+	foreground {
+		forbacktickx -E entry { venus-conf -ltk env $1 }
+		if -nt {
+			backtick -Ex single {
+				pipeline { venus-conf env $1 }
+				venus-conf $entry
+			}
+		}
+		backtick -Ex type {
+			pipeline { venus-conf env $1 }
+			pipeline { venus-conf -t $entry }
+			venus-conf type
+		}
+		ifelse { test "command" = "$type" } {
+			echo "importas -i $entry"
+		}
+		ifelse { test "command-flat" = "$type" } {
+			echo "importas -is $entry"
+		}
+		ifelse { test "literal" = "$type" } {
+			backtick -Ex data {
+				pipeline { venus-conf env $1 }
+				pipeline { venus-conf -t $entry }
+				venus-conf $type
+			}
+			echo "define $entry \"$data\""
+		}
+		fdmove 1 2
+		if { echo "Invalid type" }
+		exit 1
+	}
+	if { echo "}" }
+	# COMMAND
+	backtick -ED "true" cmd { venus-conf -a command $1 }
+	echo $cmd
+}
+execlineb -P $tmpfile

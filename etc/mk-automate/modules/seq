@@ -1,0 +1,8 @@
+#!/bin/execlineb -S1
+importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+forbacktickx -E entry {
+	backtick -Ex amount { venus-conf seq $1 }
+	seq 1 $amount
+}
+pipeline { venus-conf -t seq-${entry} }
+${AUTOMATE_ETC_DIR}/bin/cmd -

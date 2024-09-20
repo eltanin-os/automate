@@ -1,0 +1,57 @@
+#!/bin/execlineb
+elgetopt "s:"
+multisubstitute {
+	importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+	importas -i FILE 1
+	importas -D "" ELGETOPT_s ELGETOPT_s
+}
+shift -n1
+elgetpositionals -P3
+emptyenv -Po
+# prepare env
+backtick AUTOMATE_ENV_SETS { execlineb -P -c "echo ${ELGETOPT_s}" }
+# get rule
+backtick -Ex tmpfile { mktemp }
+trap { default { rm $tmpfile } }
+if {
+	backtick -Ex rule {
+		if -nt { ${AUTOMATE_ETC_DIR}/bin/getrule $FILE $1 }
+		fdmove 1 2
+		if { echo "No rule for \"${1}\"" }
+		exit 1
+	}
+	backtick -Ex strip {
+		case -- $rule {
+			"default\..*" {
+				pipeline { echo "${rule} ${2}" }
+				awk -f ${AUTOMATE_ETC_DIR}/bin/basename.awk
+			}
+		}
+		echo $2
+	}
+	redirfd -w 1 $tmpfile
+	if { echo "1:$1" }
+	if { echo "2:$strip" }
+	if { echo "3:$3" }
+	pipeline {
+		multisubstitute {
+			importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+			importas -sd ","  AUTOMATE_ENV_SETS AUTOMATE_ENV_SETS
+		}
+		cat ${AUTOMATE_ETC_DIR}/sets/${AUTOMATE_ENV_SETS} $FILE
+	}
+	venus-conf -a $rule -
+}
+# io
+backtick -D "/dev/fd/0" input { venus-conf input $tmpfile }
+backtick -D "/dev/fd/1" output { venus-conf output $tmpfile }
+multisubstitute {
+	importas -iu input input
+	importas -iu output output
+}
+redirfd -r 0 $input
+redirfd -w 1 $output
+# do the work
+if { ${AUTOMATE_ETC_DIR}/bin/cmd $tmpfile }
+if -nt { test "${3}" = "${output}" }
+redo-ifchange $output

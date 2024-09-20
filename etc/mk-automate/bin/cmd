@@ -1,0 +1,16 @@
+#!/bin/execlineb -S1
+importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+ifelse { test "-" = "$1" } {
+	backtick -Ex tmpfile { mktemp }
+	foreground {
+		redirfd -w 1 $tmpfile
+		cat $1
+	}
+	foreground { ${AUTOMATE_ETC_DIR}/bin/merge-values $tmpfile }
+	foreground { ${AUTOMATE_ETC_DIR}/bin/do-command $tmpfile }
+	importas -iu status ?
+	foreground { rm -f $tmpfile }
+	exit $status
+}
+foreground { ${AUTOMATE_ETC_DIR}/bin/merge-values $1 }
+${AUTOMATE_ETC_DIR}/bin/do-command $1

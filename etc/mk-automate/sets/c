@@ -1,0 +1,22 @@
+# commands
+cc-executable-cmd:$CC $LDFLAGS -o $3 ${@} $LDLIBS
+cc-library-cmd{
+	if { $AR rc $3 ${@}.o }
+	$RANLIB $3
+}
+cc-obj-cmd:$CC $CFLAGS $CPPFLAGS -o $3 -c ${2}.c
+# default
+default.c.o{
+	command:$:{cc-obj-cmd}
+	${2}.c
+}
+default.a{
+	command:$:{cc-library-cmd}
+}
+$program{
+	module:library
+	library{
+		command:${cc-executable-cmd}
+	}
+	${2}.c.o
+}

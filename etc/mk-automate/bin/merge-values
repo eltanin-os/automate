@@ -1,0 +1,10 @@
+#!/bin/execlineb -S1
+backtick -Ex tmpfile { mktemp }
+redirfd -w 1 $tmpfile
+foreground {
+	if { echo "@{" }
+	foreground { venus-conf -ltv - $1 }
+	echo "}"
+}
+foreground { cat $1 }
+mv $tmpfile $1

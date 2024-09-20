@@ -1,0 +1,25 @@
+#!/bin/execlineb
+importas -i FILE 1
+shift -n1
+elgetpositionals -P1
+emptyenv -Po
+if -t {
+	forbacktickx -Ex 1 rule {
+		pipeline { redo-whichdo $1 }
+		sed "s;\\.do$;;"
+	}
+	if -t {
+		pipeline {
+			multisubstitute {
+				importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+				importas -sd ","  AUTOMATE_ENV_SETS AUTOMATE_ENV_SETS
+			}
+			cat ${AUTOMATE_ETC_DIR}/sets/${AUTOMATE_ENV_SETS} $FILE
+		}
+		redirfd -w 1 /dev/null
+		venus-conf -a $rule
+	}
+	foreground { echo $rule }
+	exit 1
+}
+exit 1

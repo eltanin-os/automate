@@ -1,0 +1,68 @@
+# default
+all{
+	data
+	doc
+	include
+	lib
+	program
+	man
+}
+clean{
+	env{
+		targets{
+			type:command
+			command:redo-targets
+		}
+	}
+	command: rm -Rf $targets
+}
+install{
+	install-data
+	install-lib
+	install-include
+	install-program
+	install-man
+}
+# install routines
+install-data{
+	command{
+		if { install -dm "${DESTDIR}${PREFIX}${DRTDIR}" }
+		if { install -cm ${DRTPERM} ${data} "${DESTDIR}${PREFIX}${DRTDIR}" }
+	}
+	data
+}
+install-lib{
+	command{
+		if { install -dm "${DESTDIR}${PREFIX}${LIBDIR}" }
+		if { install -cm ${LIBPERM} ${lib} "${DESTDIR}${PREFIX}${LIBDIR}" }
+	}
+	lib
+}
+install-include{
+	command{
+		if { install -dm "${DESTDIR}${PREFIX}${INCDIR}" }
+		if { install -cm ${INCPERM} ${include} "${DESTDIR}${PREFIX}${INCDIR}" }
+	}
+	include
+}
+install-program{
+	command{
+		if { install -dm "${DESTDIR}${PREFIX}${BINDIR}" }
+		if { install -cm ${BINPERM} ${program} "${DESTDIR}${PREFIX}${BINDIR}" }
+	}
+	program
+}
+install-man{
+	command{
+		if { install -dm "${DESTDIR}${PREFIX}${MANDIR}" }
+		if { install -cm ${MANPERM} ${man} "${DESTDIR}${PREFIX}${MANDIR}" }
+	}
+	man
+}
+# dummy
+data:
+doc:
+include:
+lib:
+program:
+man:

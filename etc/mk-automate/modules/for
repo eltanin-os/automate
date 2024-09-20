@@ -1,0 +1,8 @@
+#!/bin/execlineb -S1
+importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+forbacktickx -E element { venus-conf -t for $1 }
+pipeline {
+	if { echo "entry:${element}" }
+	venus-conf -t -- for-do $1
+}
+${AUTOMATE_ETC_DIR}/bin/cmd -

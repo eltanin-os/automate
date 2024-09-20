@@ -1,0 +1,46 @@
+#!/bin/execlineb -S1
+backtick cflags { mktemp }
+backtick ldflags { mktemp }
+multisubstitute {
+	importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+	importas -iu cflags cflags
+	importas -iu ldflags ldflags
+}
+trap { default { rm $cflags $ldflags } }
+# deps (redo, pkg-config, fail)
+foreground {
+	forbacktickx -Eo 0 lib { venus-conf -tlv library $1 }
+	if -nt {
+		backtick -xED "" rule {
+			${AUTOMATE_ETC_DIR}/bin/getrule $1 $lib
+		}
+		if { test -n $rule }
+		redo-ifchange $rule
+	}
+	if -nt {
+		importas -D "pkg-config" -su PKG_CONFIG PKG_CONFIG
+		if { $PKG_CONFIG $lib }
+		if {
+			redirfd -w 1 $cflags
+			$PKG_CONFIG --cflags $lib
+		}
+		redirfd -w 1 $ldflags
+		$PKG_CONFIG --libs $lib
+	}
+	fdmove 1 2
+	if { echo "<error> library '${lib}' not found" }
+	exit 1
+}
+# exec
+backtick CFLAGS {
+	importas -D "" CFLAGS CFLAGS
+	if { echo $CFLAGS }
+	cat $cflags
+}
+backtick LDFLAGS {
+	importas -D "" LDFLAGS LDFLAGS
+	if { echo $LDFLAGS }
+	cat $ldflags
+}
+pipeline { venus-conf -t library $1 }
+${AUTOMATE_ETC_DIR}/bin/cmd -

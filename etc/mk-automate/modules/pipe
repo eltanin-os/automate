@@ -1,0 +1,20 @@
+#!/bin/execlineb -S1
+backtick -Ex command {
+	backtick amount { venus-conf pipe $1 }
+	importas -D "/etc/automate" AUTOMATE_ETC_DIR AUTOMATE_ETC_DIR
+	multisubstitute {
+		importas -iu amount amount
+		define C "${AUTOMATE_ETC_DIR}/bin/cmd -"
+		define P "pipeline"
+		define V "venus-conf -t"
+	}
+	if {
+		forbacktickx -E entry {
+			backtick -Ex max { expr -- $amount "-" 1 }
+			seq 1 $max
+		}
+		echo "${P} { ${P} { ${V} pipe-${entry} ${1} } ${C} }"
+	}
+	echo "${P} { ${V} pipe-${amount} ${1} } ${C}"
+}
+execlineb -P -c $command
