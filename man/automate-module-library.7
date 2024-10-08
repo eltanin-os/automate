@@ -1,0 +1,59 @@
+.Dd $Mdocdate: October 08 2024 $
+.Dt LIBRARY 7
+.Os
+.Sh NAME
+.Nm library
+.Nd search deps
+.Sh SYNOPSIS
+.Bd -literal
+module:library
+library{
+	# automate block
+	[libraries ...]
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module searches for rules to build each specified library.
+If no rule is found, it tries to locate the library using
+.Xr pkg-config 1 .
+If that fails, it performs a basic search through the
+system's library directories.
+.Pp
+Once the dependencies are processed, the module sets relevant
+environment variables if necessary.
+It then invokes
+.Xr automate 1
+to process the
+.Dq library
+block, excluding the dependencies.
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXXX
+.It Ev AUTOMATE_ETC_DIR
+The directory path containing automate's config files and data.
+.It Ev PKG_CONFIG
+The argument to invoke pkg-config or an equivalent.
+.It Ev LIBRARY_PATH
+Colon-separated
+.Pq Sq \&: ,
+list of paths to search for libraries.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To build a program:
+.Bd -literal -offset indent
+#!/bin/automate -s default,c
+program:sdl-example
+sdl-example{
+	library{
+		lib/libcommon.a
+		SDL2
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr pkg-config 1 ,
+.Xr venus-conf 5

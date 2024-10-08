@@ -1,0 +1,64 @@
+.Dd $Mdocdate: October 08 2024 $
+.Dt PIPE 7
+.Os
+.Sh NAME
+.Nm pipe
+.Nd process sequential connected blocks
+.Sh SYNOPSIS
+.Bd -literal
+module:pipe
+pipe:n
+pipe-1{
+	# automate block
+}
+# ...
+pipe-n{
+	# automate block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module processes a series of connected blocks sequentially. It creates a chain
+of
+.Cm n
+pipes, where
+.Cm n
+is specified by the
+.Dq pipe
+variable.
+For each pipe in the chain, the module invokes
+.Xr automate 1
+to process the corresponding block.
+.Pp
+The blocks are processed in order from
+.Dq pipe-1
+to
+.Dq pipe- Ns Cm n ,
+with the output of one block feeding into the
+input of the next block in the chain.
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXXX
+.It Ev AUTOMATE_ETC_DIR
+The directory path containing automate's config files and data.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To create a file from a macro and indent:
+.Bd -literal -offset indent
+code.c{
+	output:$3
+	module:pipe
+	pipe:2
+	pipe-1{
+		command:m4 code.m4
+	}
+	pipe-2{
+		command:indent -st
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5

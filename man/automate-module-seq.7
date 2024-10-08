@@ -1,0 +1,65 @@
+.Dd $Mdocdate: October 08 2024 $
+.Dt SEQ 7
+.Os
+.Sh NAME
+.Nm seq
+.Nd process sequential blocks
+.Sh SYNOPSIS
+.Bd -literal
+module:seq
+seq:n
+seq-1{
+	# automate block
+}
+# ...
+seq-n{
+	# automate block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module processes a series of blocks sequentially. It creates a chain of
+.Ar n
+entries, where
+.Ar n
+is specified by the
+.Dq seq
+variable.
+For each entry in the chain, the module invokes
+.Xr automate 1
+to process the corresponding block.
+.Pp
+The blocks are processed in order from
+.Dq seq-1
+to
+.Dq seq- Ns Cm n .
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXXX
+.It Ev AUTOMATE_ETC_DIR
+The directory path containing automate's config files and data.
+.El
+
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+.Bd -literal -offset indent
+#!/bin/automate -s default,c
+hello.c{
+	output:$3
+	module:seq
+	seq:3
+	seq-1{
+		command:scripts/head.sh $1
+	}
+	seq-2{
+		command:scripts/body.sh $1
+	}
+	seq-3{
+		command:scripts/tail.sh $1
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5

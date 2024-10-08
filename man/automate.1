@@ -1,0 +1,137 @@
+.Dd $Mdocdate: October 08 2024 $
+.Dt AUTOMATE 1
+.Os
+.Sh NAME
+.Nm automate
+.Nd A declarative frontend for redo
+.Sh SYNOPSIS
+.Nm
+.Op Fl s Ar sets
+.Ar file
+.Ar redo-arg-1
+.Ar redo-arg-2
+.Ar redo-arg-3
+.Sh DESCRIPTION
+The
+.Nm
+utility processes a rule from the specified
+.Ar file
+and acts as a
+.Xr venus-conf 1
+frontend for
+.Xr redo 1 .
+It must be invoked through
+.Xr redo 1 ,
+with the
+.Ar file
+encoded in
+.Xr venus-conf 5
+format.
+.Pp
+The
+.Nm
+utility performs the following steps:
+.Bl -tag -width Ds -offset indent -compact
+.It 1.
+Selects a rule.
+.It 2.
+Invokes
+.Xr redo-ifchange 1
+for each dependency.
+.It 3.
+Executes the specified module.
+.It 4.
+Executes the specified command.
+.El
+.Pp
+The rule is chosen using
+.Ar redo-arg-1
+and the
+.Xr redo-whichdo 1
+search pattern.
+.Ss KEYS
+The following key entries have special meaning:
+.Bl -tag -width XXXXXXX -offset indent -compact
+.It input
+Set the input file
+.Pq default: standard input
+.It module
+Set the module to run
+.Pq default: none
+.It output
+Set the output file
+.Pq default: standard output
+.It command
+Set the command to run
+.Pq default: Xr true 1
+.El
+.Pp
+Any other key not used by a module is ignored.
+The value entries are interpreted as dependencies.
+.Ss VARIABLES
+The following variables have special meaning:
+.Bl -tag -width X -offset indent -compact
+.It 1
+Represents
+.Ar redo-arg-1 .
+.It 2
+Represents
+.Ar redo-arg-2 .
+.It 3
+Represents
+.Ar redo-arg-3 .
+.It @
+Represents the rule dependencies.
+.El
+.Ss MODULES AND SETS
+The modules are executables files that processes its invoking block and
+performs specific operations.
+.Pp
+The sets are files containing rules.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl s Ar sets
+Include the specified sets, separated by commas.
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXXX
+.It Ev AUTOMATE_ETC_DIR
+The directory path containing automate's config files and data.
+.El
+.Sh FILES
+.Bl -tag -width "/etc/automate/modules" -compact
+.It Pa /etc/automate/sets
+A directory with rules files.
+.It Pa /etc/automate/modules
+A directory with executable modules.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+Create a file named
+.Dq default.do :
+.Bd -literal -offset indent
+#!/usr/bin/automate
+program:hello
+hello.c{
+	output:$3
+	module:heredoc
+	heredoc{
+		#include <stdio.h>
+		int
+		main(void) {
+			puts("Hello, World!");
+			return 0;
+		}
+	}
+}
+.Ed
+.Pp
+Build the program:
+.Bd -literal -offset indent
+$ redo hello
+.Ed
+.Sh SEE ALSO
+.Xr redo 1 ,
+.Xr redo-whichdo 1 ,
+.Xr venus-conf 5

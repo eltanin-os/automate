@@ -1,0 +1,55 @@
+.Dd $Mdocdate: October 08 2024 $
+.Dt FOR 7
+.Os
+.Sh NAME
+.Nm for
+.Nd iterate over entries
+.Sh SYNOPSIS
+.Bd -literal
+module:for
+for:[entries ...]
+for-do{
+	# automate block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module invokes
+.Xr automate 1
+to process the
+.Dq for-do
+block for each entry specified on the
+.Dq for
+variable.
+The current entry being processed can be accessed using the variable
+.Sq < .
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXXX
+.It Ev AUTOMATE_ETC_DIR
+The directory path containing automate's config files and data.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To concatenate multiple files:
+.Bd -literal -offset indent
+#!/bin/automate -s default,c
+program:hello
+hello.c{
+	output:$3
+	module:for
+	for{
+		hello-head.c
+		hello-body.c
+		hello-tail.c
+	}
+	for-do{
+		input:${<}
+		command:cat -
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5
