@@ -1,0 +1,111 @@
+.Dd $Mdocdate: February 13 2025 $
+.Dt STD-DEFAULT 7
+.Os
+.Sh NAME
+.Nm std-c
+.Nd automate C set collection
+.Sh DESCRIPTION
+The
+.Nm
+set collection provides common rules, macros, and useful constants to
+standardize
+.Xr automate 1
+scripts for building C projects.
+.Ss CONSTANTS
+.Bl -tag -width XXXXXXXXXXXXXXXXXX -compact
+.It %cc-executable-cmd
+A block containing command instructions for building executables.
+.It %cc-library-cmd
+A block containing command instructions for building static libraries.
+.It %cc-obj-cmd
+A block containing command instructions for compiling object files.
+.El
+.Ss VIRTUAL RULES
+.Bl -tag -width XXXXXXXXX -compact
+.It $@program
+Set the module to
+.Xr automate-module-std-library 7
+and add
+.Sq ${2}.c.o
+as dependency on the main block. Inside the library block,
+.Sy %cc-executable-cmd
+is set as command.
+.It $@library
+Add
+.Sq ${default.a}
+to the block.
+.El
+.Ss RULES
+.Bl -tag -width XXXXXXXXXXXXXXX -compact
+.It default.c
+A placeholder rule for C source files.
+.It default.s
+A placeholder rule for assembly source files.
+.It default.c.o
+Build C source files into object files.
+.It default.s.o
+Build assembly source files into object files.
+.It default.a
+Builds static libraries from object files.
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXX
+.It AR
+The archiver utility.
+.It CC
+The C compiler.
+.It CFLAGS
+Flags passed to the C compiler during compilation.
+.It CPPFLAGS
+Flags passed to the C preprocessor.
+.It LDFLAGS
+Flags passed to the linker during executable creation.
+.It RANLIB
+The archive index generator.
+.El
+.Sh FILES
+.Bl -tag -width XXXXXXXXXXXXXXXXXXXXXXXXXXXX -compact
+.It Pa Ev AUTOMATE_ETC_DIR Ns /env/std-c
+.El
+.Sh EXAMPLES
+To set an executable as installable and its library dependencies:
+.Bd -literal -offset indent
+@program{
+	hello-sdl
+}
+hello-sdl{
+	library{
+		SDL2
+	}
+}
+.Ed
+.Pp
+To set a static library:
+.Bd -literal -offset indent
+@library{
+	lib/libpublic.a
+}
+# installable library
+lib/libpublic.a{
+	transform{
+		${%%glob-edit}
+		glob:lib/common/*.c
+		edit:sed "s;$$;.o"
+	}
+}
+# internal library
+lib/libcommon.a{
+	transform{
+		${%%glob-edit}
+		glob:lib/common/*.c
+		edit:sed "s;$$;.o"
+	}
+	# manually import default.a
+	${default.a}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5 ,
+.Xr automate-modules-std-library 7 ,
+.Xr automate-sets-std 7

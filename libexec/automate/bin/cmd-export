@@ -1,0 +1,15 @@
+#!/bin/execlineb
+multisubstitute {
+	importas -iu entry 1
+	importas -iu file 2
+}
+runblock -n 2 -r 0
+backtick $entry {
+	pipeline {
+		pipeline { venus-conf -t env $file }
+		if { venus-conf -t $entry }
+		printf "%s\n" "input:/dev/fd/0" "output:/dev/fd/1"
+	}
+	importas -D "/usr/libexec/automate" LIBEXEC AUTOMATE_LIBEXEC_DIR
+	${LIBEXEC}/bin/cmd -
+}

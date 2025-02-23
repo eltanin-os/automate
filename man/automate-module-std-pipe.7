@@ -1,0 +1,59 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt PIPE 7
+.Os
+.Sh NAME
+.Nm pipe
+.Nd process sequential connected blocks
+.Sh SYNOPSIS
+.Bd -literal
+module:pipe
+pipe{
+	[rules ...]
+}
+rule-name{
+	# automate block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module processes a series of connected blocks sequentially.
+For each rule specified in the
+.Dq pipe
+block, the module invokes
+.Xr automate-cmd 1
+to process the corresponding block.
+.Pp
+The blocks are processed in the order they are listed in the
+.Dq pipe
+block, with the output of one block feeding into the
+input of the next block in the chain.
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To create a minified and compressed file from a manpage:
+.Bd -literal -offset indent
+hello.1.html.gz{
+	input:hello.1
+	output:$3
+	module:pipe
+	pipe{
+		html
+		minify
+		compress
+	}
+	html{
+		command:mandoc -T html
+	}
+	minify{
+		command:sed ":a;N;$!ba;s/>\s*</></g"
+	}
+	compress{
+		command:gzip -9
+	}
+	hello.1
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5

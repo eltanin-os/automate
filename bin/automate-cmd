@@ -1,0 +1,3 @@
+#!/bin/execlineb -S1
+importas -D "/usr/libexec/automate" LIBEXEC AUTOMATE_LIBEXEC_DIR
+${LIBEXEC}/bin/cmd $1

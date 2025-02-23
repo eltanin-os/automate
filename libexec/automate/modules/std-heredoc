@@ -1,0 +1,2 @@
+#!/bin/execlineb -S1
+venus-conf -ax heredoc $1

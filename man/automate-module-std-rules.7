@@ -1,0 +1,57 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt RULES 7
+.Os
+.Sh NAME
+.Nm rules
+.Nd process rule blocks
+.Sh SYNOPSIS
+.Bd -literal
+module:rules
+rules{
+	[rules ...]
+}
+rule-name{
+	# automate block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module processes a series of rule blocks.
+For each rule specified in the
+.Dq rules
+block, the module invokes
+.Xr automate-cmd 1
+to process the corresponding block.
+.Pp
+The blocks are processed in the order they are listed in the
+.Dq rules
+block.
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To build a program in stages:
+.Bd -literal -offset indent
+#!/bin/automate -s default
+program:build
+build{
+	module:rules
+	rules{
+		configure
+		compile
+		test
+	}
+	configure{
+		command:./configure
+	}
+	compile{
+		command:make
+	}
+	test{
+		command:make test
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5

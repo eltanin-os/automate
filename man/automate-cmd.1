@@ -1,0 +1,119 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt AUTOMATE-CMD 1
+.Os
+.Sh NAME
+.Nm automate-cmd
+.Nd automate block interpreter
+.Sh SYNOPSIS
+.Nm automate-cmd
+.Ar file
+.Sh DESCRIPTION
+The
+.Nm
+utility executes the
+.Em automate block
+given in the specified
+.Ar file
+.Pq encoded in Xr automate 5 format .
+If the specified
+.Ar file
+is a single dash
+.Pq Sq \&- ,
+.Nm
+reads from the standard input.
+.Pp
+The execution sequence proceeds as follows:
+.Bl -enum -offset indent -compact
+.It
+Inject block
+.Dq @
+with dependencies as content.
+.It
+Execute
+.Xr redo-ifchange 1
+for dependencies.
+.It
+Execute
+.Nm
+for each inner block in
+.Dq env .
+.It
+Redirect the key
+.Dq input
+to the standard input.
+.It
+Redirect the standard output to the
+.Dq output
+key.
+.It
+Execute the specified module.
+.It
+Execute the specified command via
+.Xr execlineb 1 .
+.El
+.Pp
+A module is an executable binary that receives its calling block through a file passed as the first argument.
+.Pp
+When a module is specified, the command entry is ignored.
+Each block in
+.Dq env
+is exported as an environment variable,
+using the block's name as key and its output as value.
+Environment variables are automatically imported during command
+execution, unlike standard
+.Xr execlineb 1 Pq which requires manual importing .
+.Pp
+Default values when not specified:
+.Bl -tag -offset indent -width XXXXXXXXX -compact
+.It Dq env
+Empty.
+.It Dq input
+Standard input.
+.It Dq output
+Standard output.
+.It Dq module
+Empty.
+.It Dq command
+.Xr true 1 .
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXXXXXXXXXXX
+.It Ev AUTOMATE_LIBEXEC_DIR
+The directories where
+.Xr automate 1
+modules and binaries are found.
+.El
+.Sh FILES
+.Bl -tag -width XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+.It Pa Ev AUTOMATE_LIBEXEC_DIR Ns /modules
+The global modules directory.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To create a base64 encoding module:
+.Bd -literal -offset indent
+#!/bin/sh -e
+# enough arguments?
+test "$#" -eq 1
+# block "base64" exists?
+venus-conf -qt base64 "$1"
+# $1: block content (file)
+venus-conf -t base64 "$1" | automate-cmd -
+.Ed
+.Pp
+To use the module:
+.Bd -literal -offset indent
+output:hello-world.base64.txt
+module:base64
+base64{
+	command:echo "Hello World"
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 1 ,
+.Xr redo-ifchange 1 ,
+.Xr venus-conf 1 ,
+.Xr automate 5 ,
+.Xr venus-conf 5

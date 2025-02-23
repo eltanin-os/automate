@@ -1,0 +1,7 @@
+#!/bin/execlineb -S1
+forbacktickx -E element { venus-conf -a map $1 }
+pipeline {
+	if { echo "<:${element}" }
+	venus-conf -t apply $1
+}
+automate-cmd -

@@ -1,0 +1,46 @@
+#!/bin/execlineb -S1
+backtick -E fileA { mktemp -t automate.XXXXXXXXX }
+backtick -E fileB { mktemp -t automate.XXXXXXXXX }
+trap { default { rm -f $fileA $fileB } }
+foreground {
+	backtick -E cmd {
+		pipeline { venus-conf -a pipe $1 }
+		# preapare for escaping hell
+		awk "
+{
+	entries[NR]=$0
+}
+END{
+	if (NR == 1) {
+		e=entries[NR]
+		print \"pipeline { venus-conf -t \" e \" ${1} } automate-cmd - }\"
+	} else {
+		input=\"${fileA}\"
+		output=\"${fileB}\"
+		# first
+		e=entries[1]
+		m=\"echo \\\"output:\" output \"\\\"\"
+		print \"if { pipeline { if { venus-conf -t \" e \" ${1} } \" m \" } automate-cmd - } \"
+		# swap
+		tmp=input; input=output; output=tmp
+		# mid
+		for (i = 2; i < NR; i++) {
+			e=entries[i]
+			m=\"printf \\\"%s\\\\n\\\" \\\"input:\" input \"\\\" \\\"output:\" output \"\\\"\"
+			print \"if { pipeline { if { venus-conf -t \" e \" ${1} } \" m \" } automate-cmd - } \"
+			# swap
+			tmp=input; input=output; output=tmp
+		}
+		# tail
+		e=entries[NR]
+		m=\"echo \\\"input:\" input \"\\\"\"
+		print \"if { pipeline { if { venus-conf -t \" e \" ${1} } \" m \" } automate-cmd - } \"
+	}
+}
+"
+	}
+	execlineb -Pc $cmd
+}
+importas -iu status ?
+foreground { rm -f $fileA $fileB }
+exit $status

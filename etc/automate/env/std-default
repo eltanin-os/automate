@@ -1,0 +1,10 @@
+PREFIX=/usr
+BINDIR=/bin
+SBINDIR=/sbin
+LIBDIR=/lib
+LIBEXECDIR=/libexec
+ETCDIR=/etc
+DFLDIR=/etc/default
+DRTDIR=/share
+MANDIR=/share/man
+INCDIR=/include

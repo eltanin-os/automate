@@ -1,0 +1,57 @@
+.Dd $Mdocdate: February 08 2025 $
+.Dt STD-SEARCH 7
+.Os
+.Sh NAME
+.Nm std-search
+.Nd search files
+.Sh SYNOPSIS
+.Bd -literal
+search{
+	in:[directory]
+	for:[pattern]
+	except:[entry]
+	except{
+		[entries ...]
+	}
+}
+apply{
+	# automate block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module performs recursive filtered searches in specified directories, then
+executes the
+.Dq apply
+block via
+.Xr automate-cmd 1
+for each found file.
+.Pp
+The search operation consists of two main blocks:
+.Bl -tag -width Ds
+.It Cm search
+Defines the search parameters:
+.Bl -bullet -compact
+.It
+.Cm in:
+Define the starting point.
+.It
+.Cm for:
+Define the search pattern.
+.It
+.Cm except:
+Define exclusive filters.
+.El
+.It Cm apply
+Define the block executed for each matched file. The currently processed file
+name is injected through the key
+.Dq <
+within this block.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+.Sh SEE ALSO
+.Xr automate-cmd 1 ,
+.Xr venus-conf 5

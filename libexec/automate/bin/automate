@@ -1,0 +1,71 @@
+#!/bin/execlineb
+elgetopt "s:"
+multisubstitute {
+	importas -D "/etc/automate" ETC AUTOMATE_ETC_DIR
+	importas -D "/usr/libexec/automate" LIBEXEC AUTOMATE_LIBEXEC_DIR
+	importas -i FILE 1
+	importas -Ssd "," -D "" ELGETOPT_s
+}
+shift -n1
+elgetpositionals -P3
+emptyenv -Po
+# temporary files
+backtick -E tmpfile { mktemp -t automate.XXXXXXXXX }
+trap { default { rm -f $tmpfile } }
+foreground {
+	# transform
+	case -- $1 {
+		".*\.transform" {
+			pipeline { cat ${ETC}/sets/${ELGETOPT_s} $FILE }
+			redirfd -w 1 $3
+			${LIBEXEC}/bin/dump $tmpfile
+		}
+	}
+	# expand transform
+	define F "${FILE}.transform"
+	if { redo-ifchange $F }
+	# main work
+	# select rule
+	if {
+		backtick -E rule {
+			backtick -Ex rule { ${LIBEXEC}/bin/which $1 $F }
+			case -- $? {
+				0 { echo $rule }
+				1 {
+					fdmove 1 2
+					if { echo "No rule for \"${1}\"" }
+					exit 1
+				}
+				2 { echo "-" }
+			}
+		}
+		backtick -E strip {
+			case -- $rule {
+				"default\..*" {
+					pipeline { echo "${rule} ${2}" }
+					awk -f ${LIBEXEC}/bin/basename.awk
+				}
+			}
+			echo $2
+		}
+		redirfd -w 1 $tmpfile
+		if { echo "1:$1" }
+		if { echo "2:$strip" }
+		if { echo "3:$3" }
+		venus-conf -t $rule $F
+	}
+	# env
+	pipeline {
+		pipeline {
+			redirfd -w 2 /dev/null
+			cat ${ETC}/env/${ELGETOPT_s}
+		}
+		awk -F"=" "{ if (!($1 in ENVIRON)) print $0 }"
+	}
+	envfile -
+	# automate block
+	${LIBEXEC}/bin/cmd $tmpfile
+}
+importas -iu status ?
+#foreground { rm -f $tmpfile }
+exit $status

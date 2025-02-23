@@ -1,137 +1,185 @@
-.Dd $Mdocdate: October 08 2024 $
+.Dd $Mdocdate: February 05 2025 $
 .Dt AUTOMATE 1
 .Os
 .Sh NAME
 .Nm automate
-.Nd A declarative frontend for redo
+.Nd redo declarative frontend
 .Sh SYNOPSIS
 .Nm
-.Op Fl s Ar sets
+.Op Fl s Ar set
 .Ar file
-.Ar redo-arg-1
-.Ar redo-arg-2
-.Ar redo-arg-3
+.Ar rule
+.Ar strip
+.Ar tmp
 .Sh DESCRIPTION
 The
 .Nm
-utility processes a rule from the specified
-.Ar file
-and acts as a
-.Xr venus-conf 1
-frontend for
-.Xr redo 1 .
-It must be invoked through
-.Xr redo 1 ,
-with the
+utility processes the specified
+.Ar rule
+from the specified
 .Ar file
 encoded in
-.Xr venus-conf 5
+.Xr automate 5
 format.
 .Pp
-The
-.Nm
-utility performs the following steps:
-.Bl -tag -width Ds -offset indent -compact
-.It 1.
-Selects a rule.
-.It 2.
-Invokes
+The execution follows the following steps:
+.Bl -enum -offset indent -compact
+.It
+Execute
 .Xr redo-ifchange 1
-for each dependency.
-.It 3.
-Executes the specified module.
-.It 4.
-Executes the specified command.
+for
+.Sq Ar file Ns .transform .
+.It
+Select an
+.Em automate block
+matching
+.Ar rule
+in
+.Sq Ar file Ns .transform .
+.It
+Import the env files for the specified
+.Ar set Ns s .
+.It
+Execute
+.Xr automate-cmd 1
+for the selected block.
 .El
 .Pp
-The rule is chosen using
-.Ar redo-arg-1
-and the
+If the specified
+.Ar file
+name starts with
+.Dq default.
+the selection is determined as if
 .Xr redo-whichdo 1
-search pattern.
-.Ss KEYS
-The following key entries have special meaning:
-.Bl -tag -width XXXXXXX -offset indent -compact
-.It input
-Set the input file
-.Pq default: standard input
-.It module
-Set the module to run
-.Pq default: none
-.It output
-Set the output file
-.Pq default: standard output
-.It command
-Set the command to run
-.Pq default: Xr true 1
-.El
+were executed for the specified
+.Ar rule ;
+Otherwise, the given
+.Ar file
+itself is interpreted as an
+.Em automate block .
 .Pp
-Any other key not used by a module is ignored.
-The value entries are interpreted as dependencies.
-.Ss VARIABLES
-The following variables have special meaning:
-.Bl -tag -width X -offset indent -compact
+The following keys are injected in the selected block:
+.Bl -tag -offset indent -width X -compact
 .It 1
-Represents
-.Ar redo-arg-1 .
+As
+.Ar rule .
 .It 2
-Represents
-.Ar redo-arg-2 .
+As
+.Ar strip .
 .It 3
-Represents
-.Ar redo-arg-3 .
-.It @
-Represents the rule dependencies.
+As
+.Ar tmp .
 .El
-.Ss MODULES AND SETS
-The modules are executables files that processes its invoking block and
-performs specific operations.
 .Pp
-The sets are files containing rules.
+The injected keys serve the same purpose as those provided by
+.Xr redo 1 ,
+for the
+.Nm
+utility is intended to be executed via
+.Xr automate-do 1 .
+.Ss TRANSFORM
+The transform concatenates the specified
+.Ar set Ns s
+and
+.Ar file ,
+then executes
+.Xr automate-cmd 1
+for each
+.Em transform block .
+.Pp
+A
+.Em transform block
+is an
+.Em automate block
+named
+.Dq transform .
+The content is processed outside-in. When a
+.Em transform block
+is found, its entire content is passed to
+.Xr automate-cmd 1 .
+The command's output is captured verbatim and replaces the
+original block without further interpretation.
+.Pp
+For example:
+.Bd -literal -offset indent
+# Before
+target-arch-options{
+	transform{
+		transform:now-I-am-just-a-normal-entry
+		command:uname -m
+	}
+	generic
+}
+# After
+target-arch-options{
+	x86_64
+	generic
+}
+.Ed
+.Pp
+This process is intended to programmatically generate static content.
 .Sh OPTIONS
 .Bl -tag -width Ds
-.It Fl s Ar sets
-Include the specified sets, separated by commas.
+.It Fl s Ar set Ns s
+Include sets from the comma-separated
+.Pq Sq \&,
+list of
+.Ar set Ns s .
 .El
 .Sh ENVIRONMENT
-.Bl -tag -width XXXXXXXXXXXX
+.Bl -tag -width XXXXXXXXXXXXXXXXXXXX
 .It Ev AUTOMATE_ETC_DIR
-The directory path containing automate's config files and data.
+The directories where
+.Nm
+configuration data is found.
+.It Ev AUTOMATE_LIBEXEC_DIR
+The directories where
+.Nm
+modules and binaries are found.
 .El
 .Sh FILES
-.Bl -tag -width "/etc/automate/modules" -compact
-.It Pa /etc/automate/sets
-A directory with rules files.
-.It Pa /etc/automate/modules
-A directory with executable modules.
+.Bl -tag -width XXXXXXXXXXXXXXXXXXXXXXX -compact
+.It Pa Ev AUTOMATE_ETC_DIR Ns /env
+The global env directory.
+.It Pa Ev AUTOMATE_ETC_DIR Ns /sets
+The global sets directory.
 .El
 .Sh EXIT STATUS
 .Ex -std
 .Sh EXAMPLES
-Create a file named
-.Dq default.do :
+To write a hello world in C:
 .Bd -literal -offset indent
-#!/usr/bin/automate
-program:hello
+#!/usr/bin/automate -s std-default,std-c
+# including sets "std-default" and "std-c"
+# file name:default.do
+@program{
+	hello
+}
 hello.c{
-	output:$3
+	%operating-system{
+		transform{
+			command:cat /etc/release
+		}
+	}
 	module:heredoc
 	heredoc{
 		#include <stdio.h>
 		int
-		main(void) {
-			puts("Hello, World!");
+		main(void)
+		{
+			puts("Hello, $:{%operating-system}");
 			return 0;
 		}
 	}
 }
 .Ed
 .Pp
-Build the program:
-.Bd -literal -offset indent
-$ redo hello
-.Ed
+To trigger the build:
+.Dl $ automate-do
 .Sh SEE ALSO
+.Xr automate-cmd 1 ,
+.Xr automate-do 1 ,
 .Xr redo 1 ,
-.Xr redo-whichdo 1 ,
-.Xr venus-conf 5
+.Xr redo-ifchange 1 ,
+.Xr automate 5 ,
+.Xr automate-sets-std 7

@@ -1,0 +1,91 @@
+.Dd $Mdocdate: February 05 2025 $
+.Dt AUTOMATE 5
+.Os
+.Sh NAME
+.Nm automate
+.Nd automate configuration format
+.Sh DESCRIPTION
+The
+.Nm
+format extends
+.Xr venus-conf 5
+introducing
+.Em automate blocks ;
+executable units processed by
+.Xr automate-cmd 1 .
+.Pp
+An
+.Em automate block
+consists of the following elements:
+.Bl -tag -offset indent -width command -compact
+.It env
+A block where each inner block is itself an
+.Em automate block .
+.It module
+A key specifying a module to load.
+.It command
+A key or a block defining the command to execute.
+.El
+.Pp
+Any value that is neither a key nor a block is a dependency.
+.Pp
+The naming conventions for blocks are as follow:
+.Bl -tag -offset indent -width XXXXXX -compact
+.It name
+A rule
+.Pq creates a target .
+.It @name
+A virtual rule
+.Pq does not create a target directly .
+.It %name
+A dummy
+.Pq not executable .
+.It %%name
+A macro
+.Pq a helper meant to be deferred locally
+.El
+.Sh EXAMPLES
+To use a macro:
+.Bd -literal -offset indent
+%%glob-edit{
+	module:pipe
+	pipe{
+		_glob
+		_edit
+	}
+	_glob{
+		module:glob
+		glob:$glob
+	}
+	_edit{
+		command:edit
+	}
+}
+env{
+	files{
+		${%%glob-edit}
+		glob:*
+		edit:sed -e "s;^;';" -e "s;$$;';"
+	}
+}
+command:echo $files
+.Ed
+.Pp
+To use a helper block for creating a command for each entry:
+.Bd -literal -offset indent
+%entries{
+	binary-1
+	binary-2
+	binary-3
+}
+multicall{
+	command{
+		if { ln -s main-binary $entries }
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr automate-cmd 1 ,
+.Xr venus-conf 1 ,
+.Xr venus-conf 5

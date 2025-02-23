@@ -1,0 +1,4 @@
+#!/bin/execlineb -S1
+forbacktickx -E entry { venus-conf -a rules $1 }
+pipeline { venus-conf -t $entry }
+automate-cmd -

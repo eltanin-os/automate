@@ -1,0 +1,27 @@
+#!/usr/bin/automate -s std-default
+@etc{
+	prefix:etc/automate
+	transform{
+		module:std-glob
+		glob:etc/automate/*/*
+	}
+}
+@data{
+	prefix:libexec/automate
+	transform{
+		module:std-glob
+		glob:libexec/automate/*/*
+	}
+}
+@program{
+	transform{
+		module:std-glob
+		glob:bin/*
+	}
+}
+@manpage{
+	transform{
+		module:std-glob
+		glob:man/*
+	}
+}

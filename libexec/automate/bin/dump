@@ -1,0 +1,51 @@
+#!/bin/execlineb -S1
+# receive the venus-conf(5) encoded file as stdin
+# expand (execute) all the transform blocks
+backtick merged { mktemp -t automate.XXXXXXXXX }
+backtick progress { mktemp -t automate.XXXXXXXXX }
+backtick tmpfile { mktemp -t automate.XXXXXXXXX }
+multisubstitute {
+	importas -Siu merged
+	importas -Siu progress
+	importas -Siu tmpfile
+}
+trap { default { rm -f $merged $progress $tmpfile } }
+foreground {
+	# stdin
+	if {
+		redirfd -w 1 $tmpfile
+		cat -
+	}
+	# merge
+	if {
+		redirfd -w 1 $merged
+		cat $1 $tmpfile
+	}
+	# values
+	importas -D "/usr/libexec/automate" LIBEXEC AUTOMATE_LIBEXEC_DIR
+	if { ${LIBEXEC}/bin/transform $merged }
+	# blocks and keys
+	backtick -D "" entries { venus-conf -kltx - $tmpfile }
+	if -t {
+		importas -Si entries
+		test -n $entries
+	}
+	importas -Sisu entries
+	forx -Eo 0 entry { $entries }
+	if -nt { test transform = $entry }
+	if -nt {
+		backtick -ED "" value { venus-conf $entry $tmpfile }
+		if { test -n $value }
+		pipeline { echo "${entry}:$value" }
+		tee -a $progress
+	}
+	backtick -ED "" args {
+		pipeline { venus-conf -txx $entry $tmpfile }
+		${LIBEXEC}/bin/dump $progress
+	}
+	pipeline { printf "%s{\n%s\n}\n" $entry $args }
+	tee -a $progress
+}
+importas -iu status ?
+foreground { rm -f $merged $progress $tmpfile }
+exit $status

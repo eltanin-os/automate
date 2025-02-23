@@ -1,0 +1,11 @@
+#!/bin/execlineb -S1
+# $1: file
+if { venus-conf -tvxx - $1 }
+if -t { venus-conf -qt transform $1 }
+# pipe for it will be caught earlier on
+pipeline {
+	if { venus-conf -t transform $1 }
+	echo "output:/dev/fd/1"
+}
+importas -D "/usr/libexec/automate" LIBEXEC AUTOMATE_LIBEXEC_DIR
+${LIBEXEC}/bin/cmd -

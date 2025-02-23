@@ -1,0 +1,15 @@
+#!/bin/execlineb
+elgetopt "m:p:"
+multisubstitute{
+	importas -iu TARGET 1
+	importas -SuD "." ELGETOPT_p
+	importas -SuD "644" ELGETOPT_m
+}
+shift -n1
+elgetpositionals -P0
+emptyenv -Po
+forbacktickx -p -d "" -E entry { find $@ ! -type d }
+backtick -E relpath { pipeline { echo $entry } sed "s;^${ELGETOPT_p};;" }
+backtick -E dir { dirname $relpath }
+if { mkdir -p ${TARGET}/${dir} }
+install -cm ${ELGETOPT_m} $entry ${TARGET}/${relpath}

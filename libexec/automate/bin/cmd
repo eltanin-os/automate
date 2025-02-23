@@ -1,0 +1,90 @@
+#!/bin/execlineb -S1
+# $1: file
+importas -D "/usr/libexec/automate" LIBEXEC AUTOMATE_LIBEXEC_DIR
+backtick -E file { mktemp -t automate.XXXXXXXXX }
+backtick -E stdin { mktemp -t automate.XXXXXXXXX }
+trap { default { rm -f $file $stdin } }
+foreground {
+	# it could be a pipe that can not be used more than once
+	if {
+		redirfd -w 1 $stdin
+		cat $1
+	}
+	if {
+		redirfd -w 1 $file
+		if { cat $stdin }
+		if { echo "@{" }
+		if { venus-conf -ltv - $stdin }
+		if { echo "}" }
+	}
+	# deps
+	if {
+		backtick -D "" deps { venus-conf -t @ $file }
+		if -t {
+			importas -Si deps
+			test -n $deps
+		}
+		importas -Sisu deps
+		redo-ifchange $deps
+	}
+	# env injection
+	backtick -D "4:exec," injection-env {
+		forbacktickx -E entry { venus-conf -tlk env $file }
+		netstring-echo ${LIBEXEC}/bin/cmd-export $entry $file
+	}
+	importas -Sisud "" injection-env
+	$injection-env
+	# redirfd injection
+	backtick -D "4:exec," injection-io {
+		redirfd -w 2 /dev/null
+		foreground {
+			backtick -E input { venus-conf input $file }
+			netstring-echo redirfd -r 0 $input
+		}
+		importas -iu in ?
+		foreground {
+			backtick -E output { venus-conf output $file }
+			netstring-echo redirfd -w 1 $output
+		}
+		importas -iu out ?
+		if -nt { test $in -eq 0 }
+		test $out -eq 0
+	}
+	importas -Sisud "" injection-io
+	$injection-io
+	# module
+	ifelse { venus-conf -q module $file } {
+		backtick -E module { venus-conf module $file }
+		${LIBEXEC}/modules/$module $file
+	}
+	# exec
+	backtick -E cmd {
+		backtick -E body {
+			backtick entries {
+				pipeline { venus-conf -a command $file }
+				awk -f ${LIBEXEC}/bin/variables.awk
+			}
+			if -t {
+				importas -Si entries
+				test -n $entries
+			}
+			importas -Sisu entries
+			forx -E entry { $entries }
+			backtick -xED "" flag {
+				pipeline { venus-conf -t env $file }
+				pipeline { venus-conf -t $entry }
+				venus-conf flatten
+			}
+			ifelse { test "true" = "${flatten}" } {
+				echo "importas -SD \"\" \"${entry}\""
+			}
+			echo "importas -sSD \"\" \"${entry}\""
+		}
+		backtick -ED "true" cmd { venus-conf -a command $file }
+		printf "multisubstitute { %s } %s" $body $cmd
+	}
+	execlineb -Pc $cmd
+}
+importas -iu status ?
+foreground { rm -f $file $stdin }
+exit $status

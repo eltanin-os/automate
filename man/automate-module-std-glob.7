@@ -1,0 +1,37 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt STD-GLOB section
+.Os
+.Sh NAME
+.Nm std-glob
+.Nd perform globbing
+.Sh SYNOPSIS
+.Bd -literal
+glob:path
+glob{
+	[path ...]
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module performs globbing for each entry in the block/key
+.Dq glob
+and writes the result to the standard output.
+If the entries block/key is missing, paths are read from standard input.
+For any entry that cannot be expanded, the entry is written unmodified.
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To glob:
+.Bd -literal -offset indent
+module:glob
+glob:man/*
+.Ed
+.Pp
+To glob from stdin:
+.Bd -literal -offset indent
+input:list-of-files.txt
+module:glob
+.Ed
+.Sh SEE ALSO
+.Xr venus-conf 5

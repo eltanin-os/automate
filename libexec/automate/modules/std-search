@@ -1,0 +1,17 @@
+#!/bin/execlineb -S1
+# XXX: likely extremely slow
+backtick in { pipeline { venus-conf -t search $1 } venus-conf in }
+backtick for { pipeline { venus-conf -t search $1 } venus-conf for }
+find $in -name $for -exec
+define pkg "{}"
+if -nt {
+	pipeline { venus-conf -t search $1 }
+	pipeline { venus-conf -a except }
+	grep -Fqx $pkg
+}
+pipeline {
+	if { echo "<:${element}" }
+	venus-conf -t apply $1
+}
+automate-cmd -
+;

@@ -1,0 +1,49 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt STD-MAP 7
+.Os
+.Sh NAME
+.Nm std-map
+.Nd apply actions to a list of entries
+.Sh SYNOPSIS
+.Bd -literal
+map:[entry]
+map{
+	[entries ...]
+}
+apply{
+	# action block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module invokes
+.Xr automate-cmd 1
+to process the block
+.Dq apply
+for each entry specified in the
+.Dq map
+block/key.
+The currently processed entry is injected into the key named
+.Dq < .
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To generate a headers file from multiple C source files:
+.Bd -literal -offset indent
+prototypes.h{
+	output:$3
+	module:std-map
+	map{
+		head.c.in
+		body.c.in
+		tail.c.in
+	}
+	apply{
+		command:gcc -aux-info /dev/stdout $:{<}
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate-cmd 1 ,
+.Xr venus-conf 5

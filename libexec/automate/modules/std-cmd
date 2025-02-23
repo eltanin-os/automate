@@ -1,0 +1,18 @@
+#!/bin/execlineb -S1
+pipeline {
+	if { venus-conf -t cmd $1 }
+	if -t { venus-conf -qt inject $1 }
+	backtick entries { venus-conf -t inject $1 }
+	if -t {
+		importas -Si entries
+		test -n $entries
+	}
+	forx -Eo 0 entry { $entries }
+	backtick -E data {
+		pipeline { venus-conf -t inject $1 }
+		pipeline { venus-conf -t $entry }
+		automate-cmd
+	}
+	printf "%s{\n%s\n}\n" $entry $data
+}
+automate-cmd -

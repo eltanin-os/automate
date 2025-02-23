@@ -1,0 +1,74 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt STD-CMD 7
+.Os
+.Sh NAME
+.Nm std-cmd
+.Nd wrap and inject
+.Sh SYNOPSIS
+.Bd -literal
+inject{
+	entry{
+		# automate block
+	}
+	[...]
+}
+cmd{
+	# automate block
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+wraps an
+.Em automate block
+injecting it with entries from the
+.Dq inject
+block before execution via
+.Xr automate-cmd 1 .
+Before injection, each entry is processed by
+.Xr automate-cmd 1 ,
+and its content replaced by its output.
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To isolate deps
+.Pq useful for global rules :
+.Bd -literal -offset indent
+module:std-cmd
+cmd{
+	command:$CC -o utility $:{@}
+	utility.c.o
+}
+# isolated (this dep won't make part of "$@")
+prototypes.h
+.Ed
+.Pp
+To inject a block:
+.Bd -literal -offset indent
+module:std-cmd
+inject{
+	message{
+		command:echo "Hello World"
+	}
+}
+cmd{
+	# injected:
+	# message{
+	#  Hello World
+	# }
+	module:std-heredoc
+	heredoc{
+		#include <stdio.h>
+		int
+		main(void)
+		{
+			puts("$:{message}");
+			return 0;
+		}
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate-cmd 1 ,
+.Xr venus-conf 5 ,
+.Xr automate-module-std-heredoc 7

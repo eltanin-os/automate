@@ -1,0 +1,116 @@
+.Dd $Mdocdate: February 13 2025 $
+.Dt STD-DEFAULT 7
+.Os
+.Sh NAME
+.Nm std-default
+.Nd automate standard set collection
+.Sh DESCRIPTION
+The
+.Nm
+set collection provides common rules, macros, and useful constants to
+standardize
+.Xr automate 1
+scripts.
+.Ss MACROS
+.Bl -tag -width XXXXXXXXXXX -compact
+.It %%glob-edit
+A macro to the common pattern of globbing followed by an edit.
+.El
+.Ss CONSTANTS
+.Bl -tag -width XXXXXXXXXX -compact
+.It %host-arch
+The architecture of the host system.
+.It %host-os
+The operating system of the host system.
+.El
+.Ss VIRTUAL RULES
+.Bl -tag -width XXXXXXXX -compact
+.It @etc
+Configuration files.
+.It @data
+Data resources.
+.It @include
+Headers.
+.It @libexec
+Helper executables.
+.It @library
+Libraries.
+.It @program
+Executables.
+.It @manpage
+Manual pages.
+.El
+.Ss RULES
+.Bl -tag -width XXXXXXXXXXXXXXX -compact
+.It all
+Build all project artifacts.
+.It clean
+Delete all generated files and build outputs.
+.It install
+Install all targets to system directories.
+.It install-etc
+Install configuration files.
+.It install-data
+Install data resources.
+.It install-include
+Install header files.
+.It install-libexec
+Install helper executables.
+.It install-library
+Install libraries.
+.It install-program
+Install executables.
+.It install-manpage
+Install manual pages.
+.El
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXX
+.It BINDIR
+Installation directory for executables.
+.It BINPERM
+Permissions for installed executables.
+.It DESTDIR
+Root directory for staged installations.
+.It DRTDIR
+Data resource directory.
+.It DRTPERM
+Permissions for data resources.
+.It ETCDIR
+Configuration directory.
+.It ETCPERM
+Permissions for configuration files.
+.It LIBDIR
+Library installation directory.
+.It LIBPERM
+Permissions for libraries.
+.It LIBEXECDIR
+Helper executables directory.
+.It LIBEXECPERM
+Permissions for helper executables.
+.It MANDIR
+Manual page directory.
+.It MANPERM
+Permissions for manual pages.
+.It PREFIX
+Base installation directory.
+.El
+.Sh FILES
+.Bl -tag -width XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX -compact
+.It Pa Ev AUTOMATE_ETC_DIR Ns /env/std-default
+Configuration file containing default values for all environment variables.
+.El
+.Sh EXAMPLES
+To set program through the macro:
+.Bd -literal -offset indent
+@program{
+	transform{
+		${%%glob-edit}
+		edit:sed "s;.c$$;;"
+		glob:src/*.c
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5 ,
+.Xr automate-sets-std 7

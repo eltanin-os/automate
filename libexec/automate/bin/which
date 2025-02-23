@@ -1,0 +1,19 @@
+#!/bin/execlineb -S2
+# $1: rule
+# $2: file
+backtick -Ex file { basename $2 }
+case -- $file {
+	"default\..*" {
+		if -t {
+			forbacktickx -Ex 1 rule {
+				pipeline { redo-whichdo $1 }
+				sed "s;\\.do$;;"
+			}
+			if -t { venus-conf -qt $rule $2 }
+			if { echo $rule }
+			exit 1
+		}
+		exit 1
+	}
+}
+exit 2

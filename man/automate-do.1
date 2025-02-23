@@ -1,0 +1,31 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt AUTOMATE-DO 1
+.Os
+.Sh NAME
+.Nm automate-do
+.Nd automate redo wrapper
+.Sh SYNOPSIS
+.Nm automate-do
+.Op Ar args ...
+.Sh DESCRIPTION
+The
+.Nm
+utility set environmental variables and invokes
+.Xr redo 1
+with the provided
+.Ar args .
+.Sh ENVIRONMENT
+.Bl -tag -width XXXXXXXXXXXXXXXXXXXX
+.It Ev AUTOMATE_LIBEXEC_DIR
+The directories where
+.Xr automate 1
+modules and binaries are found.
+.El
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To build a target:
+.Dl $ automate-do target
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr redo 1

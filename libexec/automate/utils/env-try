@@ -1,0 +1,2 @@
+#!/bin/execlineb -S2
+execlineb -Pc "importas -SD \"\" ${1} ifelse { test -n $${1} } { echo $${1} } ${2}"

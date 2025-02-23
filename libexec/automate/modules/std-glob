@@ -1,0 +1,9 @@
+#!/bin/execlineb -S1
+ifelse -n { venus-conf -aq glob $1 } {
+	forstdin -E entry
+	elglob path "${entry}"
+	printf "%s\n" $path
+}
+forbacktickx -E entry { venus-conf -a glob $1 }
+elglob path "${entry}"
+printf "%s\n" $path

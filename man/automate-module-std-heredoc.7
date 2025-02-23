@@ -1,0 +1,42 @@
+.Dd $Mdocdate: February 07 2025 $
+.Dt HEREDOC 7
+.Os
+.Sh NAME
+.Nm heredoc
+.Nd write content
+.Sh SYNOPSIS
+.Bd -literal
+heredoc:[content]
+heredoc{
+	[content]
+}
+.Ed
+.Sh DESCRIPTION
+The
+.Nm
+module reads the
+.Dq heredoc
+block/key content and writes it to the standard output.
+.Sh EXIT STATUS
+.Ex -std
+.Sh EXAMPLES
+To create a hello world:
+.Bd -literal -offset indent
+#!/bin/automate -s default,c
+program:hello
+hello.c{
+	output:$3
+	module:heredoc
+	heredoc{
+		#include <stdio.h>
+		int
+		main(void) {
+			puts("Hello, World!");
+			return 0;
+		}
+	}
+}
+.Ed
+.Sh SEE ALSO
+.Xr automate 1 ,
+.Xr venus-conf 5

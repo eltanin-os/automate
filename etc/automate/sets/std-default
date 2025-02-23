@@ -1,0 +1,107 @@
+# "macros"
+%%glob-edit{
+	module:std-pipe
+	pipe{
+		_glob
+		_edit
+	}
+	_glob{
+		module:std-glob
+		glob:$:{glob}
+	}
+	_edit{
+		command:$:{edit}
+	}
+}
+# global variables
+%host-arch{
+	transform{
+		command:env-try OBJTYPE "uname -m"
+	}
+}
+%host-os{
+	transform{
+		command:env-try OSNAME "uname -s"
+	}
+}
+# default rules
+all{
+	@etc
+	@data
+	@include
+	@libexec
+	@library
+	@program
+	@manpage
+}
+clean{
+	env{
+		targets{
+			command:redo-targets
+		}
+	}
+	command:rm -f $targets
+}
+install{
+	install-etc
+	install-data
+	install-include
+	install-libexec
+	install-library
+	install-program
+	install-manpage
+}
+# install routines
+$install{
+	prefix:
+}
+install-etc{
+	command{
+		if { copy -p "$:{prefix}" -m ${ETCPERM} "${DESTDIR}${ETCDIR}" $:{@etc} }
+	}
+	@etc
+}
+install-data{
+	command{
+		if { copy -p "$:{prefix}" -m ${DRTPERM} "${DESTDIR}${PREFIX}${DRTDIR}" $:{@data} }
+	}
+	@data
+}
+install-include{
+	command{
+		if { copy -p "$:{prefix}" -m ${INCPERM} "${DESTDIR}${PREFIX}${INCDIR}" $:{@include} }
+	}
+	@include
+}
+install-libexec{
+	command{
+		if { copy -p "$:{prefix}" -m ${LIBEXECPERM} "${DESTDIR}${PREFIX}${LIBEXECDIR}" $:{@libexec} }
+	}
+	@libexec
+}
+install-library{
+	command{
+		if { copy -p "$:{prefix}" -m ${LIBPERM} "${DESTDIR}${PREFIX}${LIBDIR}" $:{@library} }
+	}
+	@library
+}
+install-program{
+	command{
+		if { copy -p "$:{prefix}" -m ${BINPERM} "${DESTDIR}${PREFIX}${BINDIR}" $:{@program} }
+	}
+	@program
+}
+install-manpage{
+	command{
+		if { copy -p "$:{prefix}" -m ${MANPERM} "${DESTDIR}${PREFIX}${MANDIR}" $:{@manpage} }
+	}
+	@manpage
+}
+# dummy
+@etc:
+@data:
+@include:
+@libexec:
+@library:
+@program:
+@manpage:

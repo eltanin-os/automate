@@ -1,0 +1,6 @@
+AR=ar
+AS=as
+CC=cc
+CXX=c++
+LD=ld
+RANLIB=ranlib

@@ -1,0 +1,109 @@
+#!/bin/execlineb -S1
+backtick cflags { mktemp -t automate.XXXXXXXXX }
+backtick ldflags { mktemp -t automate.XXXXXXXXX }
+backtick ldlibs { mktemp -t automate.XXXXXXXXX }
+multisubstitute {
+	importas -Siu cflags
+	importas -Siu ldflags
+	importas -Siu ldlibs
+}
+trap { default { rm -f $cflags $ldflags $ldlibs } }
+foreground {
+	# deps (redo, pkg-config, fail)
+	if {
+		backtick libraries {
+			pipeline { venus-conf -t library $1 }
+			venus-conf -tlv -
+		}
+		if -t {
+			importas -Si libraries
+			test -n $libraries
+		}
+		importas -Sisu libraries
+		forx -Eo 0 lib { $libraries }
+		if -nt {
+			backtick -Ex dofile {
+				pipeline { redo-whichdo $lib }
+				tail -n1
+			}
+			backtick -Ex continue {
+				foreground {
+					redirfd -w 1 /dev/null
+					automate-which $lib $dofile
+				}
+				importas -iu status ?
+				case -- $status {
+					0 { echo "true"  }
+					1 { echo "false" }
+					2 { echo "true"  }
+				}
+			}
+			if { $continue }
+			if { redo-ifchange $lib }
+			getcwd -E pwd
+			redirfd -a 1 $ldlibs
+			echo ${pwd}/$lib
+		}
+		if -nt {
+			importas -suSD "pkg-config" PKG_CONFIG
+			if { $PKG_CONFIG $lib }
+			if {
+				redirfd -a 1 $cflags
+				$PKG_CONFIG --cflags $lib
+			}
+			redirfd -a 1 $ldlibs
+			$PKG_CONFIG --libs $lib
+		}
+		if -nt {
+			backtick -Ex path {
+				backtick ext {
+					importas -SD "" LDFLAGS
+					case -- $LDFLAGS {
+						".*-static.*" { echo ".a" }
+					}
+					echo ".so"
+				}
+				multisubstitute {
+					importas -iu ext ext
+					importas -Ssd ":" -D "/lib:/usr/lib/:/usr/local/lib" LIBRARY_PATH
+				}
+				redirfd -w 2 /dev/null
+				pipeline { find $LIBRARY_PATH -name "lib${lib}*" }
+				head -n1
+			}
+			if { test -n $path }
+			if {
+				backtick -Ex dirname { dirname $path }
+				redirfd -a 1 $ldflags
+				echo -L${dirname}
+			}
+			redirfd -a 1 $ldlibs
+			echo -l${lib}
+		}
+		fdmove 1 2
+		if { echo "<error> library '${lib}' not found" }
+		exit 1
+	}
+	# exec
+	backtick CFLAGS {
+		if { cat $cflags }
+		importas -SD "" CFLAGS
+		echo $CFLAGS
+	}
+	backtick LDFLAGS {
+		if { cat $ldflags }
+		importas -SD "" LDFLAGS
+		echo $LDFLAGS
+	}
+	backtick LDLIBS {
+		if { cat $ldlibs }
+		importas -SD "" LDLIBS
+		echo $LDLIBS
+	}
+	pipeline { venus-conf -t library $1 }
+	pipeline { venus-conf -tk - }
+	automate-cmd -
+}
+importas -iu status ?
+foreground { rm -f $tmpfile $cflags $ldflags $ldlibs }
+exit $status
