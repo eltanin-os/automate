@@ -1,12 +1,12 @@
-.Dd $Mdocdate: February 07 2025 $
-.Dt RULES 7
+.Dd $Mdocdate: February 23 2025 $
+.Dt STD-RULES 7
 .Os
 .Sh NAME
-.Nm rules
+.Nm std-rules
 .Nd process rule blocks
 .Sh SYNOPSIS
 .Bd -literal
-module:rules
+module:std-rules
 rules{
 	[rules ...]
 }
@@ -35,7 +35,7 @@ To build a program in stages:
 #!/bin/automate -s default
 program:build
 build{
-	module:rules
+	module:std-rules
 	rules{
 		configure
 		compile

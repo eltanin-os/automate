@@ -1,12 +1,12 @@
-.Dd $Mdocdate: February 07 2025 $
-.Dt PIPE 7
+.Dd $Mdocdate: February 23 2025 $
+.Dt STD-PIPE 7
 .Os
 .Sh NAME
-.Nm pipe
+.Nm std-pipe
 .Nd process sequential connected blocks
 .Sh SYNOPSIS
 .Bd -literal
-module:pipe
+module:std-pipe
 pipe{
 	[rules ...]
 }
@@ -36,7 +36,7 @@ To create a minified and compressed file from a manpage:
 hello.1.html.gz{
 	input:hello.1
 	output:$3
-	module:pipe
+	module:std-pipe
 	pipe{
 		html
 		minify

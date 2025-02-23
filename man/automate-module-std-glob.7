@@ -1,11 +1,12 @@
-.Dd $Mdocdate: February 07 2025 $
-.Dt STD-GLOB section
+.Dd $Mdocdate: February 23 2025 $
+.Dt STD-GLOB 7
 .Os
 .Sh NAME
 .Nm std-glob
 .Nd perform globbing
 .Sh SYNOPSIS
 .Bd -literal
+module:std-glob
 glob:path
 glob{
 	[path ...]
@@ -24,14 +25,14 @@ For any entry that cannot be expanded, the entry is written unmodified.
 .Sh EXAMPLES
 To glob:
 .Bd -literal -offset indent
-module:glob
+module:std-glob
 glob:man/*
 .Ed
 .Pp
 To glob from stdin:
 .Bd -literal -offset indent
 input:list-of-files.txt
-module:glob
+module:std-glob
 .Ed
 .Sh SEE ALSO
 .Xr venus-conf 5

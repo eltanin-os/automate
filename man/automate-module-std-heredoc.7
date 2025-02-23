@@ -1,11 +1,12 @@
-.Dd $Mdocdate: February 07 2025 $
-.Dt HEREDOC 7
+.Dd $Mdocdate: February 23 2025 $
+.Dt STD-HEREDOC 7
 .Os
 .Sh NAME
-.Nm heredoc
+.Nm std-heredoc
 .Nd write content
 .Sh SYNOPSIS
 .Bd -literal
+module:std-heredoc
 heredoc:[content]
 heredoc{
 	[content]
@@ -26,7 +27,7 @@ To create a hello world:
 program:hello
 hello.c{
 	output:$3
-	module:heredoc
+	module:std-heredoc
 	heredoc{
 		#include <stdio.h>
 		int
