@@ -1,4 +1,5 @@
 #!/bin/execlineb -S1
+pipeline -w { sort }
 ifelse -n { venus-conf -aq glob $1 } {
 	forstdin -E entry
 	elglob path "${entry}"
