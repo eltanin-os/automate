@@ -1,4 +1,4 @@
-.Dd $Mdocdate: February 07 2025 $
+.Dd $Mdocdate: February 23 2025 $
 .Dt AUTOMATE-CMD 1
 .Os
 .Sh NAME
@@ -99,7 +99,7 @@ test "$#" -eq 1
 # block "base64" exists?
 venus-conf -qt base64 "$1"
 # $1: block content (file)
-venus-conf -t base64 "$1" | automate-cmd -
+venus-conf -t base64 "$1" | automate-cmd - | base64
 .Ed
 .Pp
 To use the module:
